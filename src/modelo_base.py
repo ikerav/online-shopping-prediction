@@ -1,4 +1,5 @@
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from sklearn.pipeline import Pipeline
@@ -8,11 +9,11 @@ from src.datos import cargar_datos
 from src.preparacion import dividir_datos
 
 
-def crear_modelo(columnas):
-    """Crea la preparación de datos y la regresión logística."""
+def crear_modelo(columnas, clasificador):
+    """Une la preparación de datos con el clasificador elegido."""
 
-    # Algunas columnas contienen números que representan categorías.
-    # Por ejemplo, un código de navegador no representa una cantidad.
+    # Estos valores representan categorías, aunque algunos sean números.
+    # Por ejemplo, los códigos de navegador no indican cantidades.
     columnas_categoricas = [
         "Month",
         "OperatingSystems",
@@ -30,9 +31,9 @@ def crear_modelo(columnas):
         if columna not in columnas_categoricas
     ]
 
-    # StandardScaler ajusta la escala de las variables numéricas.
-    # OneHotEncoder crea columnas de 0 y 1 para las categorías.
-    # handle_unknown permite recibir categorías nuevas sin dar un error.
+    # Ajustamos la escala de los números y convertimos las categorías.
+    # Random Forest no necesita escalado, pero mantenemos una preparación
+    # común que también sirve para la regresión logística.
     preparacion = ColumnTransformer(
         transformers=[
             ("numericas", StandardScaler(), columnas_numericas),
@@ -44,31 +45,30 @@ def crear_modelo(columnas):
         ]
     )
 
-    # Unimos la preparación y el modelo en una misma secuencia.
-    # Así, la preparación se aprende solo con los datos de cada entrenamiento.
+    # El clasificador se recibe como argumento para reutilizar este código.
+    # Cada entrenamiento aprende también su propia preparación de datos.
     modelo = Pipeline(
         steps=[
             ("preparacion", preparacion),
-            ("clasificador", LogisticRegression(max_iter=1000)),
+            ("clasificador", clasificador),
         ]
     )
 
     return modelo
 
 
-def evaluar_modelo(modelo, X, y):
-    """Evalúa el modelo mediante validación cruzada estratificada."""
+def evaluar_modelo(nombre_modelo, modelo, X, y):
+    """Evalúa un modelo con cinco particiones y muestra sus resultados."""
 
-    # Dividimos el grupo de entrenamiento en cinco partes.
-    # En cada vuelta entrenamos con cuatro y evaluamos con la restante.
+    # Usamos la misma semilla para repetir exactamente las particiones
+    # al evaluar cada modelo y poder compararlos.
     particiones = StratifiedKFold(
         n_splits=5,
         shuffle=True,
         random_state=42,
     )
 
-    # Las métricas de precisión, recall y F1 consideran la compra
-    # como el resultado positivo que queremos detectar.
+    # La compra es la clase positiva para precisión, recall y F1.
     metricas = {
         "Accuracy": "accuracy",
         "Precision": "precision",
@@ -78,8 +78,11 @@ def evaluar_modelo(modelo, X, y):
         "AP": "average_precision",
     }
 
-    # cross_validate entrena una copia del Pipeline en cada partición.
-    # Si hay un fallo, error_score="raise" permite ver el error completo.
+    print(f"\n{nombre_modelo.upper()}: VALIDACIÓN CRUZADA")
+    print("Entrenando y evaluando las cinco particiones...")
+
+    # Se entrena una copia del Pipeline en cada partición.
+    # Mostramos cualquier error para poder corregirlo.
     resultados = cross_validate(
         modelo,
         X,
@@ -89,11 +92,8 @@ def evaluar_modelo(modelo, X, y):
         error_score="raise",
     )
 
-    print("\nREGRESIÓN LOGÍSTICA: VALIDACIÓN CRUZADA")
-
-    # Mostramos la media y la variación entre las cinco evaluaciones.
-    # El prefijo test_ se refiere a la evaluación de cada partición,
-    # no al conjunto de prueba final que tenemos reservado.
+    # test_ identifica la evaluación de cada partición.
+    # El conjunto de prueba final sigue reservado.
     for nombre in metricas:
         valores = resultados[f"test_{nombre}"]
         print(
@@ -105,14 +105,26 @@ def evaluar_modelo(modelo, X, y):
 if __name__ == "__main__":
     datos = cargar_datos()
 
-    # Utilizamos únicamente el grupo de entrenamiento.
-    # Los guiones bajos descartan los dos grupos de prueba final.
+    # Solo utilizamos el grupo de entrenamiento.
     X_entrenamiento, _, y_entrenamiento, _ = dividir_datos(datos)
 
-    # Esta referencia muestra el porcentaje de aciertos que conseguiríamos
-    # diciendo siempre que no habrá compra, sin aprender ningún patrón.
     referencia = 1 - y_entrenamiento.mean()
     print(f"Accuracy de predecir siempre 'no compra': {referencia:.3f}")
 
-    modelo = crear_modelo(X_entrenamiento.columns)
-    evaluar_modelo(modelo, X_entrenamiento, y_entrenamiento)
+    # Guardamos los clasificadores en un diccionario para evaluarlos
+    # con el mismo código, evitando repetir toda la preparación.
+    clasificadores = {
+        "Regresión logística": LogisticRegression(max_iter=1000),
+        "Random Forest": RandomForestClassifier(
+            n_estimators=200,
+            min_samples_leaf=2,
+            random_state=42,
+            n_jobs=-1,
+        ),
+    }
+
+    # Creamos y evaluamos un Pipeline para cada clasificador.
+    # n_jobs=-1 permite al bosque aprovechar los procesadores disponibles.
+    for nombre, clasificador in clasificadores.items():
+        modelo = crear_modelo(X_entrenamiento.columns, clasificador)
+        evaluar_modelo(nombre, modelo, X_entrenamiento, y_entrenamiento)
