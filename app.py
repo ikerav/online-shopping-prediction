@@ -5,6 +5,7 @@ import streamlit as st
 from src.datos import cargar_datos
 from src.entrenar_final import RUTA_MODELO
 from src.explicaciones import crear_explicador, explicar_sesion
+from src.interfaz_priorizacion import mostrar_priorizacion
 
 
 # Compartimos estas etiquetas entre el formulario y las explicaciones.
@@ -280,6 +281,9 @@ def main():
 
             st.caption("Clasificación con un umbral del 50 %.")
             mostrar_explicacion(referencia, agrupada)
+
+        # Mostramos la sección para cargar y ordenar varias sesiones.
+    mostrar_priorizacion(modelo)
 
     with st.expander("Ver ejemplos del dataset"):
         st.write(f"Número de sesiones: {len(datos)}")
