@@ -6,6 +6,7 @@ from src.datos import cargar_datos
 from src.entrenar_final import RUTA_MODELO
 from src.explicaciones import crear_explicador, explicar_sesion
 from src.interfaz_priorizacion import mostrar_priorizacion
+from src.validacion import validar_sesiones
 
 
 # Compartimos estas etiquetas entre el formulario y las explicaciones.
@@ -127,21 +128,19 @@ def mostrar_formulario(datos):
 
 
 def predecir_sesion(modelo, entradas):
-    """Devuelve la probabilidad, la clasificación y la sesión preparada."""
+    """Valida una sesión y devuelve su probabilidad y clasificación."""
 
-    # Conservamos el orden de las columnas utilizado al entrenar.
-    sesion = pd.DataFrame([entradas])
-    sesion = sesion.loc[:, modelo.feature_names_in_]
+    # Convertimos las entradas del formulario en una tabla.
+    # La validación comprueba los valores y ordena las columnas.
+    sesion = validar_sesiones(modelo, pd.DataFrame([entradas]))
 
-    if sesion.isna().any().any():
-        raise ValueError("Completa todos los datos de la sesión.")
-
+    # Seleccionamos la probabilidad correspondiente a una compra.
     indice_compra = list(modelo.classes_).index(True)
     probabilidad = modelo.predict_proba(sesion)[0, indice_compra]
     prediccion = modelo.predict(sesion)[0]
 
-    # Devolvemos también la sesión para explicar exactamente
-    # los mismos datos que acabamos de predecir.
+    # Devolvemos también los datos validados para explicar
+    # exactamente la misma sesión mediante SHAP.
     return float(probabilidad), bool(prediccion), sesion
 
 
