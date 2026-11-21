@@ -1,107 +1,96 @@
-# Predicción de compras en tiendas online
+# NEXUS · Conversion Intelligence
 
-Proyecto de la asignatura Inteligencia Artificial en las Organizaciones, de la UC3M, curso 2026/2027.
+**Predicción explicable de intención de compra en comercio electrónico**
 
-## Objetivo del proyecto
+Proyecto de Machine Learning para analizar el comportamiento de navegación de los usuarios, estimar su probabilidad de compra y priorizar sesiones mediante una aplicación interactiva desarrollada con Streamlit.
 
-Queremos predecir si una visita a una tienda online terminará en una compra a partir de los datos de navegación.
+## Objetivo
 
-Compararemos tres modelos:
+El proyecto busca identificar patrones asociados a la conversión y desarrollar una herramienta que permita:
 
-- Regresión logística.
-- Random Forest.
-- Red neuronal multicapa (MLP).
+- Estimar la probabilidad de compra de una sesión.
+- Explicar las predicciones mediante SHAP.
+- Analizar y priorizar múltiples sesiones a partir de archivos CSV.
+- Explorar las posibilidades y limitaciones de la aplicación empresarial de los modelos predictivos.
 
-Después utilizaremos la importancia de las variables y SHAP para explicar las predicciones.
+## Aplicación NEXUS
 
-También desarrollaremos una aplicación con Streamlit para consultar la probabilidad de compra y ordenar varias sesiones según esa probabilidad.
+La aplicación ofrece dos herramientas principales.
 
-## Qué está hecho
+**Análisis individual:** permite introducir las 17 características de una sesión, obtener su probabilidad estimada de compra y visualizar las contribuciones SHAP que explican la predicción.
 
-Por ahora, tenemos una aplicación básica que:
+**Priorización de sesiones:** permite cargar un CSV, calcular las probabilidades de todas las sesiones, ordenarlas por puntuación, visualizar su distribución y descargar el ranking completo.
 
-- Lee el archivo de datos.
-- Muestra el número de sesiones.
-- Muestra las primeras cinco filas.
+La aplicación utiliza un Random Forest previamente entrenado. No necesita volver a entrenar el modelo al iniciarse.
 
-Hemos comprobado que esta aplicación funciona en macOS con Python 3.12.7. También hemos instalado las bibliotecas y comprobado sus dependencias con `pip check`, sin conflictos detectados.
+## Metodología
 
-## Qué falta
+Se utiliza el conjunto de datos *Online Shoppers Purchasing Intention* del UCI Machine Learning Repository, con 12.330 registros originales.
 
-- Revisar y preparar los datos.
-- Entrenar los tres modelos.
-- Comparar sus resultados.
-- Explicar las predicciones.
-- Añadir las predicciones y la ordenación de sesiones a la aplicación.
-- Añadir pruebas para comprobar el funcionamiento del código.
+El desarrollo se organiza en cinco notebooks:
 
-## Datos utilizados
+1. **Análisis exploratorio:** limpieza, distribución de variables y relaciones con la compra.
+2. **Comparación de modelos:** regresión logística, Random Forest, MLP y CatBoost, con optimización mediante validación cruzada.
+3. **Experimentos adicionales:** ingeniería de características, tratamiento del desbalance, análisis de PageValues y ajustes adicionales.
+4. **Interpretabilidad:** análisis SHAP, factores asociados a la conversión y explicación de sesiones individuales, principalmente con CatBoost.
+5. **Evaluación final:** comparación independiente de Random Forest y CatBoost, selección de umbrales y análisis de priorización.
 
-Utilizamos el conjunto de datos Online Shoppers Purchasing Intention, publicado en UCI.
+Tras eliminar duplicados exactos, se reservaron 2.441 sesiones como conjunto de prueba. El entrenamiento y la optimización se realizaron sin utilizar ese conjunto.
 
-Contiene 12.330 sesiones y 17 variables de entrada. La variable `Revenue` indica si una sesión terminó en compra.
+## Modelo definitivo
 
-El archivo está en:
+Se seleccionó **Random Forest** por su equilibrio entre rendimiento predictivo, simplicidad e integración.
 
-```text
-data/raw/online_shoppers_intention.csv
-```
+| Métrica en test | Resultado |
+|---|---:|
+| Average Precision | 0,7564 |
+| ROC AUC | 0,9356 |
+| Precision | 0,6626 |
+| Recall | 0,7147 |
+| F1 | 0,6877 |
+| Lift@10 % | 5,16× |
 
-Fuente: https://doi.org/10.24432/C5F88Q
+El modelo utiliza las 17 características originales y un umbral de clasificación de **0,365**, seleccionado previamente mediante validación cruzada.
 
-Autores: Sakar, C. y Kastro, Y. (2018).
+En el conjunto de prueba, el 10 % de las sesiones mejor puntuadas concentra el 51,8 % de los compradores reales.
 
-Licencia: CC BY 4.0.
+## Estructura principal
 
-## Preparar el entorno en macOS
+- `app.py`: interfaz de predicción individual y explicaciones SHAP.
+- `interfaz_priorizacion.py`: carga, validación y priorización de archivos CSV.
+- `assets/styles.css`: identidad visual de NEXUS.
+- `.streamlit/config.toml`: configuración del tema.
+- `models/random_forest_final.joblib`: pipeline entrenado y umbral definitivo.
+- `notebooks/`: análisis, experimentación, interpretabilidad y evaluación.
+- `data/`: conjunto de datos utilizado en el proyecto.
 
-Estos pasos utilizan Python 3.12.
+## Instalación y ejecución
 
-Desde la carpeta principal del proyecto, donde está `app.py`, ejecutar:
+Se recomienda utilizar Python 3.14 y un entorno virtual.
 
 ```bash
-python3.12 -m venv .venv
+git clone https://github.com/ikerav/online-shopping-prediction.git
+cd online-shopping-prediction
+
+python -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-macos-py312.txt
-```
 
-En VS Code, abrir `Python: Select Interpreter` y seleccionar el intérprete de `.venv`.
-
-La carpeta `.venv` contiene el entorno virtual y está excluida de Git.
-
-Tenemos dos archivos de dependencias:
-
-- `requirements.txt`: lista general de las bibliotecas del proyecto.
-- `requirements-macos-py312.txt`: versiones exactas instaladas en el entorno que hemos comprobado en macOS con Python 3.12.7.
-
-Si se utiliza otro sistema o versión de Python, habrá que comprobar también su instalación y funcionamiento.
-
-## Comprobar las dependencias
-
-Con el entorno virtual activo, ejecutar:
-
-```bash
-python -m pip check
-```
-
-El resultado esperado es:
-
-```text
-No broken requirements found.
-```
-
-Esto comprueba que las dependencias declaradas de las bibliotecas instaladas no tienen conflictos.
-
-## Ejecutar la aplicación
-
-Desde la carpeta principal del proyecto y con el entorno virtual activo, ejecutar:
-
-```bash
+python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-Abrir en el navegador la dirección que aparece como `Local URL` en la terminal.
+En Windows, la activación del entorno puede realizarse con `.venv\Scripts\activate`.
 
-La aplicación debe mostrar el título «Predicción de compras online», un total de 12.330 sesiones y las primeras cinco filas de los datos.
+La aplicación se abrirá en la dirección local indicada por Streamlit.
 
-Para detenerla, pulsar `Control + C` en la terminal.
+Para la priorización masiva, el CSV debe contener las 17 variables de entrada del modelo. La columna `Revenue` no es necesaria.
+
+## Limitaciones
+
+El rendimiento predictivo depende considerablemente de `PageValues`. Antes de utilizar el modelo durante una visita real, es necesario verificar que todas las características estén disponibles en el momento de la predicción.
+
+Las explicaciones SHAP describen el comportamiento del modelo, pero no demuestran relaciones causales.
+
+Por último, identificar sesiones con alta probabilidad de compra no implica necesariamente que una intervención comercial vaya a generar compras adicionales.
+
+**NEXUS es un prototipo académico funcional, no un sistema validado para su despliegue comercial.**
