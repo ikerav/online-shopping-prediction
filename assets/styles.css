@@ -1,0 +1,221 @@
+/* ==========================================================
+   NEXUS · ANÁLISIS DE SESIONES
+   ========================================================== */
+
+.hero-compact {
+    padding: 2.5rem 3rem;
+    margin-bottom: 1.6rem;
+}
+
+.hero-compact h1 {
+    font-size: clamp(2rem, 3vw, 3rem);
+}
+
+.hero-compact p {
+    margin-bottom: 0;
+}
+
+/* Navegación lateral */
+
+.nav-active {
+    background: #214843;
+    border: 1px solid #346d64;
+    border-left: 3px solid #53d8be;
+    color: #8bf0da;
+    border-radius: 10px;
+    padding: 1rem 0.9rem;
+    font-size: 0.92rem;
+    font-weight: 650;
+}
+
+.model-status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #b7cbda;
+    font-size: 0.83rem;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    background: #53d8be;
+    border-radius: 50%;
+    box-shadow: 0 0 12px #53d8be70;
+}
+
+/* Contenedor del formulario */
+
+[data-testid="stForm"] {
+    background: #142237;
+    border: 1px solid #293d55;
+    border-radius: 20px;
+    padding: 1.6rem;
+}
+
+/* Pestañas del formulario */
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+}
+
+/* Campos */
+
+[data-testid="stNumberInput"],
+[data-testid="stSelectbox"] {
+    margin-bottom: 0.3rem;
+}
+
+/* Botón principal */
+
+[data-testid="stFormSubmitButton"] button {
+    background: #53d8be !important;
+    color: #102231 !important;
+    font-weight: 750 !important;
+    border: none !important;
+    border-radius: 11px !important;
+    padding: 0.8rem 1rem !important;
+}
+
+[data-testid="stFormSubmitButton"] button:hover {
+    background: #79e8d2 !important;
+    box-shadow: 0 0 20px #53d8be30;
+}
+
+/* Resultado sin predicción */
+
+.empty-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 380px;
+    background: #142237;
+    border: 1px dashed #40546e;
+    border-radius: 20px;
+    padding: 2.5rem;
+}
+
+.empty-icon {
+    color: #53d8be;
+    font-size: 3.7rem;
+    margin-bottom: 1rem;
+}
+
+.empty-result h3 {
+    color: #f0f6fc;
+    font-size: 1.3rem;
+    margin-bottom: 0.4rem;
+}
+
+.empty-result p {
+    color: #a8bbcf;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    max-width: 300px;
+}
+
+/* Resultado del modelo */
+
+.result-heading {
+    color: #a9bbcd;
+    text-align: center;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 1.4rem;
+}
+
+.prediction-positive,
+.prediction-negative {
+    border-radius: 14px;
+    padding: 1.1rem 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.prediction-positive {
+    background: #143c38;
+    border: 1px solid #2d766b;
+}
+
+.prediction-positive strong {
+    color: #76e7d0;
+}
+
+.prediction-negative {
+    background: #3b302d;
+    border: 1px solid #765648;
+}
+
+.prediction-negative strong {
+    color: #ffc19b;
+}
+
+.prediction-positive p,
+.prediction-negative p {
+    color: #bdcbd7;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin: 0.5rem 0 0;
+}
+
+/* Adaptación a pantallas pequeñas */
+
+@media (max-width: 900px) {
+    .hero-compact {
+        padding: 1.6rem;
+    }
+
+    [data-testid="stForm"] {
+        padding: 1rem;
+    }
+
+    .empty-result {
+        min-height: 240px;
+    }
+}
+
+/* ==========================================================
+   NEXUS · COLORES DE CONTROLES
+   ========================================================== */
+
+/* Pestaña seleccionada */
+
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    color: #53D8BE !important;
+}
+
+/* Línea inferior de la pestaña activa */
+
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: #53D8BE !important;
+}
+
+/* Efectos al pasar el ratón */
+
+.stTabs [data-baseweb="tab"]:hover {
+    color: #79E8D2 !important;
+}
+
+/* Botones principales */
+
+.stButton button[kind="primary"],
+.stDownloadButton button[kind="primary"] {
+    background-color: #53D8BE !important;
+    color: #102231 !important;
+    border-color: #53D8BE !important;
+}
+
+/* Botones secundarios */
+
+.stButton button[kind="secondary"]:hover {
+    border-color: #53D8BE !important;
+    color: #53D8BE !important;
+}
