@@ -10,9 +10,7 @@ from sklearn.compose import ColumnTransformer
 from interfaz_priorizacion import mostrar_priorizacion
 
 
-# ============================================================
 # CONFIGURACIÓN
-# ============================================================
 
 RAIZ = Path(__file__).resolve().parent
 RUTA_MODELO = RAIZ / "models" / "random_forest_final.joblib"
@@ -33,9 +31,7 @@ if ruta_css.exists():
     )
 
 
-# ============================================================
 # CARGA DEL MODELO
-# ============================================================
 
 @st.cache_resource
 def cargar_modelo():
@@ -55,9 +51,7 @@ except Exception as error:
     st.stop()
 
 
-# ============================================================
 # CATEGORÍAS DEL MODELO
-# ============================================================
 
 def obtener_categorias(pipeline):
     """Recupera las categorías aprendidas por el preprocesador."""
@@ -126,9 +120,9 @@ nombres_visitantes = {
 }
 
 
-# ============================================================
+
 # EJEMPLOS PARA LA DEMOSTRACIÓN
-# ============================================================
+
 
 valores_iniciales = {
     "Administrative": 3,
@@ -187,9 +181,7 @@ def cargar_ejemplo(nombre):
     st.session_state.pop("resultado", None)
 
 
-# ============================================================
 # PREPARACIÓN DE ENTRADAS
-# ============================================================
 
 def construir_sesion():
     """Convierte los controles del formulario en las 17 entradas."""
@@ -275,9 +267,7 @@ def crear_indicador(probabilidad):
     return figura
 
 
-# ============================================================
 # EXPLICACIONES SHAP
-# ============================================================
 
 @st.cache_resource(show_spinner=False)
 def cargar_explicador(_bosque):
@@ -399,9 +389,7 @@ def explicar_sesion(sesion, probabilidad):
     return referencia, tabla
 
 
-# ============================================================
 # NAVEGACIÓN
-# ============================================================
 
 with st.sidebar:
     st.markdown("## ◈ NEXUS")
@@ -438,14 +426,15 @@ with st.sidebar:
 
 
 # Mostrar la herramienta seleccionada.
+# Pasamos además SHAP a la otra pantalla sin duplicar su implementación.
 if herramienta == "Priorizar sesiones":
-    mostrar_priorizacion(modelo, umbral)
+    mostrar_priorizacion(modelo, umbral, explicar_sesion)
     st.stop()
 
 
-# ============================================================
+
 # CABECERA
-# ============================================================
+
 
 st.markdown(
     """
@@ -469,9 +458,7 @@ st.caption(
 )
 
 
-# ============================================================
 # EJEMPLOS RÁPIDOS
-# ============================================================
 
 col_ej1, col_ej2, espacio = st.columns([1, 1, 1.7])
 
@@ -496,9 +483,7 @@ st.caption(
 )
 
 
-# ============================================================
 # FORMULARIO Y RESULTADOS
-# ============================================================
 
 col_formulario, col_resultado = st.columns(
     [1.55, 1],
@@ -513,9 +498,7 @@ with col_formulario:
             ["◈ Comportamiento", "▦ Contexto de la visita"]
         )
 
-        # ----------------------------------------------------
         # COMPORTAMIENTO
-        # ----------------------------------------------------
 
         with tab_navegacion:
 
@@ -621,9 +604,7 @@ with col_formulario:
                     help="Corresponde a la variable SpecialDay.",
                 )
 
-        # ----------------------------------------------------
         # CONTEXTO
-        # ----------------------------------------------------
 
         with tab_contexto:
 
@@ -730,9 +711,7 @@ with col_formulario:
             st.error(f"Error al analizar la sesión: {error}")
 
 
-# ============================================================
 # PANEL DE RESULTADOS
-# ============================================================
 
 with col_resultado:
 
@@ -837,9 +816,7 @@ with col_resultado:
 
 
 
-# ============================================================
 # EXPLICACIÓN SHAP A ANCHO COMPLETO
-# ============================================================
 
 resultado = st.session_state.get("resultado")
 
@@ -894,9 +871,8 @@ if resultado is not None:
             for valor in principales["Puntos"]
         ]
 
-        # ----------------------------------------------------
         # GRÁFICO
-        # ----------------------------------------------------
+
 
         fig_shap = go.Figure()
 
@@ -966,9 +942,7 @@ if resultado is not None:
             f"{(probabilidad - referencia) * 100:+.1f} pp"
         )
 
-        # ----------------------------------------------------
         # TABLA COMPLETA
-        # ----------------------------------------------------
 
         with st.expander("Ver las 17 contribuciones"):
 
@@ -995,9 +969,7 @@ if resultado is not None:
                 use_container_width=True,
             )
 
-# ============================================================
 # NOTAS
-# ============================================================
 
 st.divider()
 

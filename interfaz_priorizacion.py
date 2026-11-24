@@ -4,9 +4,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 
-# ============================================================
 # VALIDACIÓN DE LOS DATOS
-# ============================================================
 
 CATEGORICAS = [
     "Month",
@@ -165,9 +163,7 @@ def validar_csv(datos, modelo):
     return X[columnas]
 
 
-# ============================================================
 # PRIORIZACIÓN
-# ============================================================
 
 def calcular_priorizacion(datos, modelo, umbral):
     """Calcula probabilidades y ordena las sesiones."""
@@ -221,11 +217,9 @@ def calcular_priorizacion(datos, modelo, umbral):
     return resultados
 
 
-# ============================================================
 # INTERFAZ
-# ============================================================
 
-def mostrar_priorizacion(modelo, umbral):
+def mostrar_priorizacion(modelo, umbral, explicar_sesion):
     """Muestra la herramienta de priorización masiva."""
 
     st.markdown(
@@ -281,9 +275,7 @@ def mostrar_priorizacion(modelo, umbral):
 
         return
 
-    # --------------------------------------------------------
     # CARGAR Y PREDECIR
-    # --------------------------------------------------------
 
     try:
         with st.spinner("Analizando sesiones..."):
@@ -306,9 +298,7 @@ def mostrar_priorizacion(modelo, umbral):
         f"Análisis completado: {len(resultados):,} sesiones procesadas."
     )
 
-    # --------------------------------------------------------
     # RESUMEN
-    # --------------------------------------------------------
 
     st.markdown("### Resumen del análisis")
 
@@ -334,8 +324,8 @@ def mostrar_priorizacion(modelo, umbral):
         st.metric(
             "Por encima del umbral",
             f"{positivas:,}",
-    )
-    st.caption(f"{positivas / total:.1%} del total")
+        )
+        st.caption(f"{positivas / total:.1%} del total")
 
     with c3:
         st.metric(
@@ -350,9 +340,7 @@ def mostrar_priorizacion(modelo, umbral):
 
     st.divider()
 
-    # --------------------------------------------------------
     # RANKING
-    # --------------------------------------------------------
 
     st.markdown("### Ranking de sesiones")
 
@@ -361,8 +349,37 @@ def mostrar_priorizacion(modelo, umbral):
         "estimada de compra, de mayor a menor."
     )
 
+    # Filtros del ranking
+    c1, c2 = st.columns(2)
+
+    with c1:
+        filtro_clasificacion = st.selectbox(
+            "Clasificación",
+            ["Todas", "Compra probable", "Compra no probable"],
+        )
+
+    with c2:
+        probabilidad_minima = st.slider(
+            "Probabilidad mínima (%)",
+            min_value=0,
+            max_value=100,
+            value=0,
+            step=1,
+        )
+
+    filtradas = resultados.copy()
+
+    if filtro_clasificacion != "Todas":
+        filtradas = filtradas[
+            filtradas["Clasificacion"] == filtro_clasificacion
+        ]
+
+    filtradas = filtradas[
+        filtradas["Probabilidad (%)"] >= probabilidad_minima
+    ]
+
     porcentaje = st.slider(
-        "Mostrar el porcentaje superior de sesiones",
+        "Mostrar el porcentaje superior de las sesiones filtradas",
         min_value=5,
         max_value=100,
         value=20,
@@ -370,12 +387,12 @@ def mostrar_priorizacion(modelo, umbral):
         format="%d%%",
     )
 
-    k = int(np.ceil(total * porcentaje / 100))
-
-    seleccion = resultados.head(k)
+    k = int(np.ceil(len(filtradas) * porcentaje / 100))
+    seleccion = filtradas.head(k)
 
     st.markdown(
-        f"**Mostrando las {k:,} sesiones mejor puntuadas.**"
+        f"**Mostrando {len(seleccion):,} de "
+        f"{len(filtradas):,} sesiones que cumplen los filtros.**"
     )
 
     tabla = seleccion[
@@ -405,9 +422,156 @@ def mostrar_priorizacion(modelo, umbral):
         },
     )
 
-    # --------------------------------------------------------
+    # EXPLICACIÓN INDIVIDUAL DESDE EL RANKING
+
+    st.markdown("#### Explicar una sesión del ranking")
+
+    st.caption(
+        "Selecciona una sesión de las mostradas para conocer "
+        "qué características influyen en su predicción."
+    )
+
+    modo_busqueda = st.radio(
+        "Buscar sesión por",
+        ["Prioridad", "Fila original"],
+        horizontal=True,
+    )
+
+    analizar = False
+    prioridad = None
+    fila_buscada = None
+
+    if modo_busqueda == "Prioridad" and seleccion.empty:
+        st.info("No hay sesiones que cumplan los filtros actuales.")
+
+    else:
+        with st.form("form_explicacion_ranking"):
+
+            if modo_busqueda == "Prioridad":
+                prioridad = st.selectbox(
+                    "Sesión",
+                    options=seleccion["Prioridad"].tolist(),
+                    format_func=lambda p: (
+                        f"Prioridad {p} · "
+                        f"Fila {resultados.iloc[p - 1]['Fila_original']} · "
+                        f"Probabilidad "
+                        f"{resultados.iloc[p - 1]['Probabilidad_compra']:.1%}"
+                    ),
+                )
+
+            else:
+                fila_buscada = st.number_input(
+                    "Número de fila original del CSV",
+                    min_value=1,
+                    max_value=int(total),
+                    value=1,
+                    step=1,
+                )
+
+            analizar = st.form_submit_button(
+                "Ver explicación SHAP",
+                use_container_width=True,
+            )
+
+    if analizar:
+        try:
+            if modo_busqueda == "Fila original":
+                fila = resultados.loc[
+                    resultados["Fila_original"] == fila_buscada
+                ]
+            else:
+                fila = resultados.iloc[[prioridad - 1]]
+
+            if fila.empty:
+                raise ValueError("No se ha encontrado la sesión.")
+
+            st.caption(
+                f"Analizando prioridad {int(fila['Prioridad'].iloc[0])} "
+                f"· Fila original {int(fila['Fila_original'].iloc[0])}"
+            )
+
+            sesion = validar_csv(fila, modelo)
+            probabilidad = float(
+                fila["Probabilidad_compra"].iloc[0]
+            )
+
+            referencia, contribuciones = explicar_sesion(
+                sesion, probabilidad
+            )
+
+            st.metric(
+                "Probabilidad estimada de compra",
+                f"{probabilidad:.1%}",
+            )
+
+            st.caption(
+                f"Probabilidad de referencia: {referencia:.1%} · "
+                f"Variación: "
+                f"{(probabilidad - referencia) * 100:+.1f} pp"
+            )
+
+            tabla_shap = contribuciones.copy()
+            tabla_shap["Puntos"] = (
+                tabla_shap["Contribucion"] * 100
+            )
+
+            principales = tabla_shap.loc[
+                tabla_shap["Puntos"].abs().nlargest(8).index
+            ].sort_values("Puntos")
+
+            figura_shap = go.Figure(
+                go.Bar(
+                    x=principales["Puntos"],
+                    y=principales["Variable"],
+                    orientation="h",
+                    marker_color=[
+                        "#53D8BE" if valor >= 0 else "#E8AC70"
+                        for valor in principales["Puntos"]
+                    ],
+                    text=[
+                        f"{valor:+.1f} pp"
+                        for valor in principales["Puntos"]
+                    ],
+                    textposition="outside",
+                    cliponaxis=False,
+                )
+            )
+
+            figura_shap.add_vline(
+                x=0,
+                line_color="#93A9BD",
+            )
+
+            figura_shap.update_layout(
+                height=460,
+                margin=dict(l=40, r=90, t=25, b=55),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#CBD5E1"),
+                xaxis_title="Contribución (puntos porcentuales)",
+                yaxis_title=None,
+                showlegend=False,
+            )
+
+            st.plotly_chart(
+                figura_shap,
+                use_container_width=True,
+            )
+
+            with st.expander("Ver las 17 contribuciones"):
+                st.dataframe(
+                    tabla_shap[["Variable", "Puntos"]]
+                    .sort_values("Puntos", ascending=False),
+                    hide_index=True,
+                    use_container_width=True,
+                )
+
+        except Exception as error:
+            st.error(
+                f"No se ha podido explicar la sesión: {error}"
+            )
+
     # DISTRIBUCIÓN DE PUNTUACIONES
-    # --------------------------------------------------------
 
     st.markdown("### Distribución de probabilidades")
 
@@ -463,9 +627,7 @@ def mostrar_priorizacion(modelo, umbral):
         f"del {umbral:.1%}."
     )
 
-    # --------------------------------------------------------
     # DESCARGA
-    # --------------------------------------------------------
 
     st.divider()
 
