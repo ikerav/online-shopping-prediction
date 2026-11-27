@@ -1,10 +1,13 @@
+
 # NEXUS — Conversion Intelligence
 
-Proyecto de Inteligencia Artificial en las Organizaciones (UC3M).
+Proyecto de Inteligencia Artificial en las Organizaciones (UC3M, 2026/2027).
 
-Predicción de la intención de compra en tiendas online mediante Machine Learning, con especial atención a la interpretabilidad de los modelos y su utilidad empresarial.
+Predicción de la intención de compra en tiendas online mediante Machine Learning. El proyecto compara diferentes modelos, analiza su interpretabilidad y explora su utilidad empresarial mediante una aplicación interactiva de apoyo a la toma de decisiones.
 
 ## Contenido
+
+Los notebooks recogen las distintas fases del proyecto:
 
 - `01`: Análisis exploratorio de los datos.
 - `02`: Comparación y optimización de modelos.
@@ -17,20 +20,65 @@ Predicción de la intención de compra en tiendas online mediante Machine Learni
 
 El modelo seleccionado es Random Forest, con un Average Precision de 0.7564, un ROC AUC de 0.9356 y un F1-score de 0.6877 en el conjunto de prueba.
 
-## Aplicación
-
-NEXUS permite analizar sesiones individuales, explicar sus predicciones mediante SHAP y priorizar múltiples sesiones a partir de archivos CSV.
-
 ## Instalación y ejecución
 
-Recomendado: Python 3.14 y un entorno virtual.
+Se recomienda utilizar Python 3.14.
 
-```bash
-pip install -r requirements.txt
-python -m streamlit run app.py
-```
+1. Clonar el repositorio:
 
-El modelo ya está entrenado. No es necesario ejecutar los notebooks para utilizar la aplicación.
+   ```bash
+   git clone https://github.com/ikerav/online-shopping-prediction.git
+   cd online-shopping-prediction
+   ```
+
+2. Crear un entorno virtual:
+
+   ```bash
+   python -m venv .venv
+   ```
+
+3. Activar el entorno virtual:
+
+   Linux y macOS:
+
+   ```bash
+   source .venv/bin/activate
+   ```
+
+   Windows (PowerShell):
+
+   ```powershell
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+4. Instalar las dependencias:
+
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+
+5. Ejecutar la aplicación:
+
+   ```bash
+   python -m streamlit run app.py
+   ```
+
+La aplicación se abrirá en el navegador (http://localhost:8501).
+
+El modelo entrenado y los conjuntos de datos están incluidos en el repositorio. No es necesario ejecutar los notebooks ni descargar datos adicionales para utilizar la aplicación.
+
+## Aplicación
+
+NEXUS dispone de dos funcionalidades principales:
+
+- **Analizar sesión:** estimar la intención de compra de una sesión individual y explicar la predicción mediante SHAP. Se incluyen ejemplos preconfigurados.
+- **Priorizar sesiones:** analizar múltiples sesiones mediante un archivo CSV y generar un ranking según su probabilidad estimada de compra. Puede probarse con `data/raw/online_shoppers_intention.csv`.
+
+## Reproducción de los experimentos
+
+Los notebooks se encuentran en `notebooks/` y pueden ejecutarse en orden utilizando el entorno virtual creado anteriormente como kernel.
+
+El notebook 05 genera el modelo utilizado por la aplicación. El notebook 06 utiliza los datos de GA4 ya extraídos; la consulta SQL original está disponible en `queries/`.
 
 ## Pruebas
 
@@ -38,7 +86,8 @@ El modelo ya está entrenado. No es necesario ejecutar los notebooks para utiliz
 python -m pytest tests/ -v
 ```
 
-## Datos
+## Fuentes de datos
 
-- [Online Shoppers Purchasing Intention — UCI](https://archive.ics.uci.edu/dataset/468/online+shoppers+purchasing+intention+dataset)
-- [Google Analytics 4 — BigQuery](https://developers.google.com/analytics/bigquery/web-ecommerce-demo-dataset)
+- [Online Shoppers Purchasing Intention — UCI Machine Learning Repository](https://doi.org/10.24432/C5F88Q). Dataset principal del proyecto.
+- [Google Analytics 4 — BigQuery Sample Dataset](https://developers.google.com/analytics/bigquery/web-ecommerce-demo-dataset). Utilizado para estudiar una aproximación alternativa a PageValues.
+

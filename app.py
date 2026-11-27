@@ -467,7 +467,7 @@ with col_ej1:
         "↗ Ejemplo: interés alto",
         on_click=cargar_ejemplo,
         args=("alto",),
-        use_container_width=True,
+        width="stretch",
     )
 
 with col_ej2:
@@ -475,7 +475,7 @@ with col_ej2:
         "↘ Ejemplo: interés bajo",
         on_click=cargar_ejemplo,
         args=("bajo",),
-        use_container_width=True,
+        width="stretch",
     )
 
 st.caption(
@@ -673,7 +673,7 @@ with col_formulario:
         enviado = st.form_submit_button(
             "Analizar intención de compra",
             type="primary",
-            use_container_width=True,
+            width="stretch",
         )
 
     if enviado:
@@ -750,7 +750,7 @@ with col_resultado:
 
         st.plotly_chart(
             figura,
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
 
@@ -810,8 +810,8 @@ with col_resultado:
             st.dataframe(
                 resultado["sesion"].T.rename(
                     columns={0: "Valor"}
-                ),
-                use_container_width=True,
+                ).astype(str),
+                width="stretch",
             )
 
 
@@ -926,7 +926,7 @@ if resultado is not None:
 
         st.plotly_chart(
             fig_shap,
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
 
@@ -966,7 +966,7 @@ if resultado is not None:
                     columns={"Etiqueta": "Variable"}
                 ),
                 hide_index=True,
-                use_container_width=True,
+                width="stretch",
             )
 
 # NOTAS

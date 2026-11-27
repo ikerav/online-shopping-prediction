@@ -8,3 +8,6 @@ textColor = "#E8EEF5"
 [theme.sidebar]
 backgroundColor = "#111E30"
 textColor = "#E8EEF5"
+
+[server]
+fileWatcherType = "none"

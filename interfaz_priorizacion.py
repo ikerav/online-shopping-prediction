@@ -407,7 +407,7 @@ def mostrar_priorizacion(modelo, umbral, explicar_sesion):
     st.dataframe(
         tabla,
         hide_index=True,
-        use_container_width=True,
+        width="stretch",
         column_config={
             "Prioridad": "Prioridad",
             "Fila_original": "Fila original",
@@ -470,7 +470,7 @@ def mostrar_priorizacion(modelo, umbral, explicar_sesion):
 
             analizar = st.form_submit_button(
                 "Ver explicación SHAP",
-                use_container_width=True,
+                width="stretch",
             )
 
     if analizar:
@@ -555,7 +555,7 @@ def mostrar_priorizacion(modelo, umbral, explicar_sesion):
 
             st.plotly_chart(
                 figura_shap,
-                use_container_width=True,
+                width="stretch",
             )
 
             with st.expander("Ver las 17 contribuciones"):
@@ -563,7 +563,7 @@ def mostrar_priorizacion(modelo, umbral, explicar_sesion):
                     tabla_shap[["Variable", "Puntos"]]
                     .sort_values("Puntos", ascending=False),
                     hide_index=True,
-                    use_container_width=True,
+                    width="stretch",
                 )
 
         except Exception as error:
@@ -618,7 +618,7 @@ def mostrar_priorizacion(modelo, umbral, explicar_sesion):
 
     st.plotly_chart(
         figura,
-        use_container_width=True,
+        width="stretch",
         config={"displayModeBar": False},
     )
 
@@ -651,7 +651,7 @@ def mostrar_priorizacion(modelo, umbral, explicar_sesion):
         file_name="nexus_sesiones_priorizadas.csv",
         mime="text/csv",
         type="primary",
-        use_container_width=True,
+        width="stretch",
     )
 
     st.caption(
